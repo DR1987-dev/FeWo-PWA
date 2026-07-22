@@ -3,6 +3,7 @@ import { formatCurrency, formatDate } from "../utils/format.js";
 const CATEGORIES = [
     "Reinigung",
     "Instandhaltung",
+    "Nebenkosten des Geldverkehrs",
     "Versicherung",
     "Strom",
     "Internet",
