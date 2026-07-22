@@ -1,5 +1,5 @@
-const APP_CACHE = "fewo-app-v1";
-const API_CACHE = "fewo-api-v1";
+const APP_CACHE = "fewo-app-v2";
+const API_CACHE = "fewo-api-v2";
 
 const APP_SHELL = [
     "./",
