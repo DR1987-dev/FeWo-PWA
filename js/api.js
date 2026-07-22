@@ -811,7 +811,7 @@ export function getBookingById(id) {
 
 export function createExpense(data) {
     if (isSheetMode()) {
-        throw new Error("Ausgaben schreiben ist im reinen Sheet-Modus nicht verfuegbar. Bitte Apps Script Endpoint verwenden.");
+        return createExpenseInSheet(data);
     }
     if (isAppsScriptBackend()) {
         return requestAppsScriptPost("createExpense", { expense: data });
@@ -820,6 +820,80 @@ export function createExpense(data) {
         method: "POST",
         body: JSON.stringify(data),
     });
+}
+
+async function createExpenseInSheet(data = {}) {
+    const date = String(data.date || "").trim();
+    const category = String(data.category || "").trim() || "Sonstiges";
+    const note = String(data.note || "").trim();
+    const amount = Math.abs(toNumber(data.amount));
+
+    if (!date) {
+        throw new Error("Bitte ein gueltiges Datum fuer die Ausgabe eingeben.");
+    }
+    if (!(amount > 0)) {
+        throw new Error("Bitte einen gueltigen Betrag fuer die Ausgabe eingeben.");
+    }
+
+    return appendSheetRow("Manuelle_Buchungen", [
+        category,
+        note || `Ausgabe ${category}`,
+        "Ausgaben",
+        date,
+        -amount,
+    ]);
+}
+
+async function appendSheetRow(sheetName, values) {
+    const { spreadsheetId } = readConfig();
+    const accessToken = getGoogleAccessToken();
+    if (!spreadsheetId || !accessToken) {
+        throw new Error("Spreadsheet ID oder Google Auth fehlen.");
+    }
+
+    const range = `${sheetName}!A:Z`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            Authorization: "Bearer " + accessToken,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+        },
+        body: JSON.stringify({
+            range,
+            majorDimension: "ROWS",
+            values: [values],
+        }),
+    });
+
+    if (!response.ok) {
+        let detail = "";
+        try {
+            const payload = await response.json();
+            detail =
+                payload?.error?.message ||
+                payload?.error?.status ||
+                "";
+        } catch {
+            try {
+                detail = await response.text();
+            } catch {
+                detail = "";
+            }
+        }
+
+        if (response.status === 403) {
+            throw new Error(
+                `Ausgabe konnte nicht gespeichert werden (HTTP 403). Bitte Google Auth erneut ausfuehren und Schreibrechte bestaetigen. ${detail}`.trim(),
+            );
+        }
+
+        throw new Error(`Ausgabe konnte nicht gespeichert werden (HTTP ${response.status}). ${detail}`.trim());
+    }
+
+    return { ok: true };
 }
 
 export function updateExpense(id, data) {
