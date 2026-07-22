@@ -55,7 +55,7 @@ Die App kann direkt aus Google Sheets lesen, ohne zusaetzliche Backend-Endpunkte
 - Buchungen/Ausgaben werden aus AlleBuchungenPlan gelesen.
 - CSV Export verwendet Monatswerte als Quelle.
 
-Hinweis: Im reinen Sheet-Modus sind Schreiboperationen fuer Ausgaben nicht verfuegbar. Dafuer ist ein Apps-Script-Schreibendpunkt noetig.
+Hinweis: Im reinen Sheet-Modus koennen neue Ausgaben direkt in das Sheet `Manuelle_Buchungen` geschrieben werden (Google OAuth mit Schreibrecht erforderlich).
 Hinweis: Fuer private Sheets wird Google OAuth benoetigt. Trage die Google OAuth Client ID ein und klicke auf "Google Auth starten".
 Hinweis: Buchungsbearbeitung (Fixkosten/Manuell/Umbuchung) funktioniert im Sheet-Modus direkt ueber die Google Sheets API mit OAuth-Schreibrecht.
 
